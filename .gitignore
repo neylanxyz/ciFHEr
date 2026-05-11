@@ -13,3 +13,6 @@ worker/.worker-key
 # FHE sidecar — keys are secret, target is build output
 fhe-sidecar/.fhe-keys/
 fhe-sidecar/target/
+
+# Personal pitch notes — never publish
+pitch.txt
