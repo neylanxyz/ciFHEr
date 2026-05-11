@@ -130,7 +130,12 @@ The worker is a trusted operator — same model as most bridges and oracles. The
 solana-test-validator --reset &
 anchor build && anchor deploy
 
-# 2. Start worker (auto-spawns the FHE sidecar)
+# 2. Build the FHE sidecar (one-time, ~2 min)
+cd fhe-sidecar
+cargo build --release
+cd ..
+
+# 3. Start worker (auto-spawns the FHE sidecar)
 cd worker
 cp .env.example .env
 npm install
