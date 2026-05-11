@@ -258,8 +258,8 @@ async function bootstrapOnChain(): Promise<void> {
   const freshPool = await getPoolData().catch(() => null);
   const solReserve = freshPool ? BigInt(freshPool.solReserve.toString()) : 0n;
   if (solReserve === 0n) {
-    const SEED_LAMPORTS = new BN(10_000_000_000);
-    console.log('[bootstrap] Seeding swap pool with 10 SOL...');
+    const SEED_LAMPORTS = new BN(1_000_000_000);
+    console.log('[bootstrap] Seeding swap pool with 1 SOL...');
     await swapProgram.methods
       .swapSolForToken(SEED_LAMPORTS)
       .accounts({
