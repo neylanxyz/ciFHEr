@@ -27,16 +27,19 @@ export function BalanceDisplay() {
     return (
       <div className="card">
         <h2>Balance</h2>
-        <div className="balance-locked">🔒 Connect your wallet to view balance</div>
+        <div className="balance-locked">Connect wallet to view balance</div>
       </div>
     )
   }
 
-  function formatBalance(b: bigint | null): string {
-    if (b === null) return 'Account not initialized'
-    // 1 token = 1 denomination unit; display as plain integer
-    return `${b.toString()} token${b === 1n ? '' : 's'}`
+  function formatBalance(b: bigint | null): { amount: string; unit: string } {
+    if (b === null) return { amount: '—', unit: 'not initialized' }
+    return { amount: b.toString(), unit: `cifherSOL` }
   }
+
+  const formatted = balance !== undefined && balance !== null && typeof balance !== 'undefined'
+    ? formatBalance(balance as bigint | null)
+    : null
 
   return (
     <div className="card">
@@ -48,18 +51,23 @@ export function BalanceDisplay() {
         ) : balance === undefined ? (
           <span className="balance-placeholder">—</span>
         ) : (
-          <span className="balance-amount">{formatBalance(balance)}</span>
+          <>
+            <span className="balance-amount">{formatted?.amount}</span>
+            {formatted?.unit && (
+              <span className="balance-unit">{formatted.unit}</span>
+            )}
+          </>
         )}
       </div>
 
       {error && <div className="error-msg">{error}</div>}
 
       <button className="btn btn-secondary" onClick={handleRefresh} disabled={loading}>
-        {loading ? 'Refreshing…' : 'Refresh'}
+        {loading ? 'Decrypting…' : 'Decrypt Balance'}
       </button>
 
       <p className="note">
-        Balance is decrypted by the worker — others see 🔒.
+        Decrypted on demand by the worker. On-chain, your balance is ciphertext.
       </p>
     </div>
   )

@@ -26,13 +26,13 @@ export function TransferPanel() {
 
     setLoading(true)
     setIsError(false)
-    setMessage('Encrypting balances and submitting transfer…')
+    setMessage('Homomorphic transfer in progress…')
     setTxSig(null)
 
     try {
       const sig = await transfer(recipient.trim(), parsedAmount)
       setTxSig(sig)
-      setMessage('Transfer submitted successfully!')
+      setMessage('Transfer complete.')
       setRecipient('')
       setAmount('')
     } catch (err) {
@@ -49,15 +49,15 @@ export function TransferPanel() {
 
   return (
     <div className="card">
-      <h2>Transfer Tokens</h2>
+      <h2>Transfer</h2>
       <p className="description">
-        Send tokens to another address. Amounts are encrypted client-side before
-        submission.
+        Send tokens. The worker computes new balances homomorphically — neither
+        sender nor recipient balance is decrypted during the operation.
       </p>
 
       <form onSubmit={handleTransfer} className="form">
         <label className="field">
-          <span>Recipient Public Key</span>
+          <span>Recipient</span>
           <input
             type="text"
             placeholder="Base-58 public key"
@@ -69,7 +69,7 @@ export function TransferPanel() {
         </label>
 
         <label className="field">
-          <span>Amount (tokens)</span>
+          <span>Amount</span>
           <input
             type="number"
             placeholder="1"
@@ -104,13 +104,13 @@ export function TransferPanel() {
       {explorerLink && (
         <div className="explorer-link">
           <a href={explorerLink} target="_blank" rel="noopener noreferrer">
-            View transaction on Solana Explorer ↗
+            View on Solana Explorer ↗
           </a>
         </div>
       )}
 
       {!publicKey && (
-        <p className="note">Connect your wallet to transfer tokens.</p>
+        <p className="note">Connect your wallet to transfer.</p>
       )}
     </div>
   )

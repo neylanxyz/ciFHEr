@@ -22,22 +22,20 @@ export function MintPanel() {
     }
   }
 
-  // Clean up polling on unmount.
   useEffect(() => () => clearPoll(), [])
 
   async function handleMint() {
     if (!publicKey) return
     setStatus('submitting')
-    setMessage('Sending mint request to Solana…')
+    setMessage('Sending mint request…')
     setTxSig(null)
 
     try {
       const sig = await mintRequest()
       setTxSig(sig)
       setStatus('pending')
-      setMessage('Transaction confirmed. Waiting for worker to fulfill mint…')
+      setMessage('Transaction confirmed. Waiting for worker…')
 
-      // Poll the worker until the mint op is done or errored.
       pollRef.current = setInterval(async () => {
         try {
           const res = await fetch(`${WORKER_URL}/status/${publicKey.toBase58()}`)
@@ -46,19 +44,18 @@ export function MintPanel() {
           const data = await res.json() as { ops: Array<{ type: string; status: string; error?: string }> }
           const mintOp = data.ops.find(op => op.type === 'mint')
 
-          if (!mintOp) return // op not yet registered — keep polling
+          if (!mintOp) return
           if (mintOp.status === 'done') {
             clearPoll()
             setStatus('fulfilled')
-            setMessage('Mint fulfilled! Your encrypted balance has been updated.')
+            setMessage('Mint fulfilled. Encrypted balance updated.')
           } else if (mintOp.status === 'error') {
             clearPoll()
             setStatus('error')
-            setMessage(`Worker error: ${mintOp.error ?? 'Unknown error'}`)
+            setMessage(`Worker error: ${mintOp.error ?? 'unknown'}`)
           }
-          // 'pending' | 'processing' — keep polling
         } catch {
-          // Network blip — keep polling
+          // network blip
         }
       }, 2000)
     } catch (err) {
@@ -75,7 +72,7 @@ export function MintPanel() {
   return (
     <div className="card">
       <h2>Mint Token</h2>
-      <p className="description">Pay 1 SOL to receive 1 encrypted confidential token.</p>
+      <p className="description">Lock 1 SOL in escrow. Receive 1 encrypted cifherSOL.</p>
 
       <button
         className="btn btn-primary"
@@ -84,7 +81,7 @@ export function MintPanel() {
       >
         {status === 'submitting' || status === 'pending'
           ? 'Processing…'
-          : 'Mint 1 Token (costs 1 SOL)'}
+          : 'Mint 1 cifherSOL'}
       </button>
 
       {message && (
@@ -99,13 +96,13 @@ export function MintPanel() {
       {explorerLink && (
         <div className="explorer-link">
           <a href={explorerLink} target="_blank" rel="noopener noreferrer">
-            View transaction on Solana Explorer ↗
+            View on Solana Explorer ↗
           </a>
         </div>
       )}
 
       {!publicKey && (
-        <p className="note">Connect your wallet to mint tokens.</p>
+        <p className="note">Connect your wallet to mint.</p>
       )}
     </div>
   )

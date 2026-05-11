@@ -13,7 +13,6 @@ import { TransferPanel } from './components/TransferPanel'
 import { SwapPanel } from './components/SwapPanel'
 import './App.css'
 
-// Inner component — must be rendered inside WalletProvider.
 function AppInner() {
   const { publicKey } = useWallet()
   const { initializeAccount } = useConfidentialToken()
@@ -28,7 +27,7 @@ function AppInner() {
     setInitMessage('Creating on-chain confidential account…')
     try {
       await initializeAccount()
-      setInitMessage('Account initialized successfully!')
+      setInitMessage('Account initialized.')
     } catch (err) {
       setInitError(true)
       setInitMessage(err instanceof Error ? err.message : String(err))
@@ -42,8 +41,7 @@ function AppInner() {
       <header className="app-header">
         <div className="header-content">
           <div className="logo">
-            <span className="logo-icon">🔐</span>
-            <span className="logo-text">ciFHEr</span>
+            <span className="logo-text">c<span className="logo-i">ı<span className="logo-asterisk">*</span></span>FHEr</span>
           </div>
           <p className="tagline">Confidential Tokens on Solana</p>
         </div>
@@ -54,11 +52,11 @@ function AppInner() {
         {!publicKey ? (
           <div className="connect-prompt">
             <div className="connect-card">
-              <div className="connect-icon">🔒</div>
+              <p className="connect-eyebrow">Fully Homomorphic Encryption</p>
               <h2>Connect Your Wallet</h2>
               <p>
-                Connect your Phantom wallet to mint, transfer, and swap confidential
-                tokens powered by Fully Homomorphic Encryption.
+                Mint, transfer, and swap confidential tokens. Balances are encrypted
+                on-chain — nobody reads them without your key.
               </p>
               <WalletMultiButton />
             </div>
@@ -101,15 +99,14 @@ function AppInner() {
 
       <footer className="app-footer">
         <p>
-          Balances are encrypted on-chain via FHE — only the authorized worker can
-          compute on them. Your balance is decrypted for you by the worker on demand.
+          Balances are stored on-chain as FHE ciphertexts — validators and block explorers
+          see only encrypted bytes. Only the authorized worker can compute on them.
         </p>
       </footer>
     </div>
   )
 }
 
-// Root component — sets up wallet and connection providers.
 export default function App() {
   const wallets = useMemo(() => [new PhantomWalletAdapter()], [])
 

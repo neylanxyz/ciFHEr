@@ -9,23 +9,24 @@
 }
 
 :root {
-  --bg:         #0f0f1a;
-  --bg-card:    #1a1a2e;
-  --bg-hover:   #22223a;
-  --border:     #2e2e4a;
-  --text:       #e2e2f0;
-  --text-muted: #8888aa;
-  --purple:     #9b59ff;
-  --purple-dim: #6a3fc8;
-  --cyan:       #00d4ff;
-  --cyan-dim:   #0099bb;
-  --green:      #00e5a0;
-  --red:        #ff4d6d;
-  --yellow:     #ffd166;
-  --radius:     12px;
-  --radius-sm:  8px;
-  --shadow:     0 4px 24px rgba(0, 0, 0, 0.45);
-  --transition: 0.2s ease;
+  --bg:           #080808;
+  --bg-card:      #0f0f0f;
+  --bg-hover:     #161616;
+  --border:       rgba(255, 255, 255, 0.1);
+  --border-hover: rgba(255, 255, 255, 0.25);
+  --text:         #f0f0f0;
+  --text-muted:   #666666;
+  --text-dim:     #999999;
+  --accent:       #ffffff;
+  --green:        #e8f5e9;
+  --red:          #ffebee;
+  --green-text:   #81c784;
+  --red-text:     #e57373;
+  --yellow-text:  #ffd54f;
+  --radius:       2px;
+  --radius-sm:    2px;
+  --shadow:       0 1px 0 rgba(255, 255, 255, 0.04);
+  --transition:   0.15s ease;
   font-size: 16px;
 }
 
@@ -36,19 +37,20 @@ html, body, #root {
 body {
   background-color: var(--bg);
   color: var(--text);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-weight: 300;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
 
 a {
-  color: var(--cyan);
+  color: var(--text-dim);
   text-decoration: none;
   transition: color var(--transition);
 }
 
 a:hover {
-  color: var(--purple);
+  color: var(--accent);
 }
 
 /* =========================================================
@@ -56,12 +58,12 @@ a:hover {
    ========================================================= */
 
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 ::-webkit-scrollbar-track {
   background: var(--bg);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 0;
 }

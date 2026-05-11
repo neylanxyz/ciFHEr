@@ -16,44 +16,56 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.25rem 2rem;
+  padding: 1.5rem 2.5rem;
   border-bottom: 1px solid var(--border);
-  background: rgba(26, 26, 46, 0.85);
-  backdrop-filter: blur(10px);
   position: sticky;
   top: 0;
   z-index: 100;
+  background: rgba(8, 8, 8, 0.92);
+  backdrop-filter: blur(12px);
 }
 
 .header-content {
   display: flex;
   flex-direction: column;
+  gap: 0.15rem;
 }
 
 .logo {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.logo-icon {
-  font-size: 1.5rem;
+  align-items: baseline;
+  gap: 0;
 }
 
 .logo-text {
-  font-size: 1.5rem;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-  background: linear-gradient(135deg, var(--purple), var(--cyan));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+}
+
+.logo-i {
+  position: relative;
+  display: inline-block;
+}
+
+.logo-asterisk {
+  position: absolute;
+  top: 0.7em;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.55em;
+  line-height: 1;
+  pointer-events: none;
 }
 
 .tagline {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
-  margin-top: 0.1rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 400;
 }
 
 /* =========================================================
@@ -62,7 +74,7 @@
 
 .app-main {
   flex: 1;
-  padding: 2rem;
+  padding: 2.5rem;
   max-width: 1100px;
   margin: 0 auto;
   width: 100%;
@@ -76,37 +88,41 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 60vh;
+  min-height: 65vh;
 }
 
 .connect-card {
   text-align: center;
-  padding: 3rem 2.5rem;
-  max-width: 480px;
-  background: var(--bg-card);
+  padding: 4rem 3rem;
+  max-width: 460px;
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
 }
 
-.connect-icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
+.connect-eyebrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
 }
 
 .connect-card h2 {
-  font-size: 1.75rem;
-  margin-bottom: 0.75rem;
-  background: linear-gradient(135deg, var(--purple), var(--cyan));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.5rem;
+  font-weight: 300;
+  color: var(--accent);
+  margin-bottom: 1rem;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
 }
 
 .connect-card p {
   color: var(--text-muted);
-  margin-bottom: 1.5rem;
-  line-height: 1.7;
+  margin-bottom: 2rem;
+  line-height: 1.8;
+  font-size: 0.875rem;
+  font-weight: 300;
 }
 
 /* =========================================================
@@ -114,7 +130,7 @@
    ========================================================= */
 
 .init-section {
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .init-card {
@@ -135,7 +151,13 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(460px, 1fr));
-  gap: 1.5rem;
+  gap: 1px;
+  border: 1px solid var(--border);
+}
+
+.grid > .card {
+  border: none;
+  border: 1px solid var(--border);
 }
 
 @media (max-width: 640px) {
@@ -143,7 +165,7 @@
     grid-template-columns: 1fr;
   }
   .app-main {
-    padding: 1rem;
+    padding: 1.25rem;
   }
 }
 
@@ -153,38 +175,39 @@
 
 .card {
   background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1.75rem;
-  box-shadow: var(--shadow);
+  padding: 2rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  transition: border-color var(--transition);
+  gap: 1.25rem;
+  transition: background var(--transition);
 }
 
 .card:hover {
-  border-color: rgba(155, 89, 255, 0.35);
+  background: var(--bg-hover);
 }
 
 .card h2 {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--text);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: var(--accent);
+  letter-spacing: -0.01em;
 }
 
 .card h3 {
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 0.65rem;
+  font-weight: 500;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.18em;
+  font-family: 'IBM Plex Mono', monospace;
 }
 
 .description {
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
-  line-height: 1.6;
+  line-height: 1.7;
+  font-weight: 300;
 }
 
 /* =========================================================
@@ -196,53 +219,60 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.65rem 1.4rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.9rem;
-  font-weight: 600;
+  padding: 0.7rem 1.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   cursor: pointer;
-  border: none;
-  transition: background var(--transition), opacity var(--transition), transform 0.1s ease;
+  border: 1px solid var(--border);
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
   white-space: nowrap;
+  background: transparent;
+  color: var(--text-dim);
 }
 
 .btn:disabled {
-  opacity: 0.45;
+  opacity: 0.3;
   cursor: not-allowed;
 }
 
 .btn:not(:disabled):active {
-  transform: scale(0.97);
+  opacity: 0.8;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--purple), var(--cyan-dim));
-  color: #fff;
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
 }
 
 .btn-primary:not(:disabled):hover {
-  background: linear-gradient(135deg, var(--purple-dim), var(--cyan));
+  background: transparent;
+  color: var(--accent);
 }
 
 .btn-secondary {
-  background: var(--bg-hover);
-  color: var(--text);
-  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  border-color: var(--border);
 }
 
 .btn-secondary:not(:disabled):hover {
-  border-color: var(--purple);
-  color: var(--purple);
+  border-color: var(--border-hover);
+  color: var(--accent);
 }
 
 .btn-outline {
   background: transparent;
-  color: var(--purple);
-  border: 1px solid var(--purple);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
 }
 
 .btn-outline:not(:disabled):hover {
-  background: rgba(155, 89, 255, 0.12);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* =========================================================
@@ -252,38 +282,49 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 1rem;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.4rem;
   font-size: 0.875rem;
 }
 
 .field span {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
   color: var(--text-muted);
-  font-weight: 500;
 }
 
 .field input {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
   color: var(--text);
-  padding: 0.6rem 0.85rem;
-  font-size: 0.9rem;
+  padding: 0.5rem 0;
+  font-size: 0.875rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 300;
   transition: border-color var(--transition);
   outline: none;
+  width: 100%;
 }
 
 .field input:focus {
-  border-color: var(--purple);
+  border-color: var(--accent);
+}
+
+.field input::placeholder {
+  color: var(--text-muted);
+  font-weight: 300;
 }
 
 .field input:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 /* =========================================================
@@ -294,34 +335,33 @@
   display: flex;
   align-items: flex-start;
   gap: 0.5rem;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
+  font-family: 'IBM Plex Mono', monospace;
   padding: 0.75rem 1rem;
-  border-radius: var(--radius-sm);
-  line-height: 1.5;
+  border-left: 2px solid;
+  line-height: 1.6;
+  font-weight: 300;
 }
 
 .status-idle {
-  background: rgba(136, 136, 170, 0.1);
+  border-color: var(--border);
   color: var(--text-muted);
 }
 
 .status-submitting,
 .status-pending {
-  background: rgba(0, 212, 255, 0.08);
-  color: var(--cyan);
-  border: 1px solid rgba(0, 212, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: var(--text-dim);
 }
 
 .status-fulfilled {
-  background: rgba(0, 229, 160, 0.08);
-  color: var(--green);
-  border: 1px solid rgba(0, 229, 160, 0.25);
+  border-color: var(--green-text);
+  color: var(--green-text);
 }
 
 .status-error {
-  background: rgba(255, 77, 109, 0.08);
-  color: var(--red);
-  border: 1px solid rgba(255, 77, 109, 0.25);
+  border-color: var(--red-text);
+  color: var(--red-text);
 }
 
 /* =========================================================
@@ -330,12 +370,12 @@
 
 .spinner {
   display: inline-block;
-  width: 1em;
-  height: 1em;
-  border: 2px solid currentColor;
+  width: 0.9em;
+  height: 0.9em;
+  border: 1px solid currentColor;
   border-top-color: transparent;
   border-radius: 50%;
-  animation: spin 0.75s linear infinite;
+  animation: spin 0.8s linear infinite;
   flex-shrink: 0;
 }
 
@@ -348,29 +388,45 @@
    ========================================================= */
 
 .balance-locked {
-  font-size: 1rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.05em;
   padding: 0.5rem 0;
 }
 
 .balance-value {
-  min-height: 2.5rem;
+  min-height: 3.5rem;
   display: flex;
-  align-items: center;
+  align-items: baseline;
+  gap: 0.5rem;
 }
 
 .balance-amount {
-  font-size: 2rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, var(--purple), var(--cyan));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 3rem;
+  font-weight: 300;
+  color: var(--accent);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.balance-unit {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  align-self: flex-end;
+  padding-bottom: 0.4rem;
 }
 
 .balance-placeholder {
-  font-size: 2rem;
-  color: var(--border);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 3rem;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.08);
+  line-height: 1;
 }
 
 /* =========================================================
@@ -394,11 +450,9 @@
    ========================================================= */
 
 .explorer-link {
-  font-size: 0.8rem;
-}
-
-.explorer-link a {
-  color: var(--cyan);
+  font-size: 0.7rem;
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.05em;
 }
 
 /* =========================================================
@@ -406,13 +460,14 @@
    ========================================================= */
 
 .note {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
-  line-height: 1.5;
+  line-height: 1.6;
+  font-weight: 300;
 }
 
 .note.warning {
-  color: var(--yellow);
+  color: var(--yellow-text);
 }
 
 /* =========================================================
@@ -420,8 +475,9 @@
    ========================================================= */
 
 .error-msg {
-  font-size: 0.875rem;
-  color: var(--red);
+  font-size: 0.75rem;
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--red-text);
   padding: 0.5rem 0;
 }
 
@@ -431,15 +487,19 @@
 
 .app-footer {
   border-top: 1px solid var(--border);
-  padding: 1.25rem 2rem;
+  padding: 1.5rem 2.5rem;
   text-align: center;
 }
 
 .app-footer p {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
+  font-family: 'IBM Plex Mono', monospace;
   color: var(--text-muted);
   max-width: 700px;
   margin: 0 auto;
+  line-height: 1.8;
+  letter-spacing: 0.03em;
+  font-weight: 300;
 }
 
 /* =========================================================
@@ -447,18 +507,50 @@
    ========================================================= */
 
 .wallet-adapter-button {
-  background: linear-gradient(135deg, var(--purple), var(--purple-dim)) !important;
-  border-radius: var(--radius-sm) !important;
-  font-weight: 600 !important;
-  transition: opacity var(--transition) !important;
+  background: transparent !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 0 !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 0.7rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  color: var(--text-dim) !important;
+  padding: 0.6rem 1.25rem !important;
+  height: auto !important;
+  transition: border-color 0.15s ease, color 0.15s ease !important;
 }
 
 .wallet-adapter-button:hover {
-  opacity: 0.85 !important;
+  background: transparent !important;
+  border-color: var(--border-hover) !important;
+  color: var(--accent) !important;
+}
+
+.wallet-adapter-button:not([disabled]).wallet-adapter-button-trigger {
+  background: var(--accent) !important;
+  color: var(--bg) !important;
+  border-color: var(--accent) !important;
+}
+
+.wallet-adapter-button:not([disabled]).wallet-adapter-button-trigger:hover {
+  background: transparent !important;
+  color: var(--accent) !important;
 }
 
 .wallet-adapter-modal-wrapper {
   background: var(--bg-card) !important;
   border: 1px solid var(--border) !important;
-  border-radius: var(--radius) !important;
+  border-radius: 0 !important;
+}
+
+.wallet-adapter-modal-title {
+  font-family: 'Cormorant Garamond', serif !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.01em !important;
+  color: var(--accent) !important;
+}
+
+.wallet-adapter-modal-list li {
+  border-bottom: 1px solid var(--border) !important;
 }
