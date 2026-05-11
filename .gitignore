@@ -1,0 +1,14 @@
+.anchor
+.DS_Store
+target
+**/*.rs.bk
+node_modules
+test-ledger
+.yarn
+
+# Worker encryption key — contains secret, do not commit
+worker/.worker-key
+
+# FHE sidecar — keys are secret, target is build output
+fhe-sidecar/.fhe-keys/
+fhe-sidecar/target/

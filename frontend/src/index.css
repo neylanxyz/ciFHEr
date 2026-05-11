@@ -1,0 +1,67 @@
+/* =========================================================
+   Global reset + base styles
+   ========================================================= */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg:         #0f0f1a;
+  --bg-card:    #1a1a2e;
+  --bg-hover:   #22223a;
+  --border:     #2e2e4a;
+  --text:       #e2e2f0;
+  --text-muted: #8888aa;
+  --purple:     #9b59ff;
+  --purple-dim: #6a3fc8;
+  --cyan:       #00d4ff;
+  --cyan-dim:   #0099bb;
+  --green:      #00e5a0;
+  --red:        #ff4d6d;
+  --yellow:     #ffd166;
+  --radius:     12px;
+  --radius-sm:  8px;
+  --shadow:     0 4px 24px rgba(0, 0, 0, 0.45);
+  --transition: 0.2s ease;
+  font-size: 16px;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--cyan);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+
+a:hover {
+  color: var(--purple);
+}
+
+/* =========================================================
+   Scrollbar
+   ========================================================= */
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}

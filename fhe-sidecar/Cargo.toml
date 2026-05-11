@@ -1,0 +1,22 @@
+[workspace]
+
+[package]
+name = "fhe-sidecar"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "fhe-sidecar"
+path = "src/main.rs"
+
+[dependencies]
+tfhe = { version = "0.7", features = ["integer", "x86_64-unix"] }
+actix-web = "4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+base64 = "0.22"
+bincode = "1"
+tokio = { version = "1", features = ["full"] }
+
+[profile.release]
+opt-level = 3

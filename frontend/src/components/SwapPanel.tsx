@@ -1,0 +1,216 @@
+import { useState, useEffect, useRef } from 'react'
+import { useWallet } from '@solana/wallet-adapter-react'
+import { useConfidentialToken } from '../hooks/useConfidentialToken'
+import { WORKER_URL } from '../utils/constants'
+
+export function SwapPanel() {
+  const { publicKey } = useWallet()
+  const { swapSolForToken, swapTokenForSolRequest } = useConfidentialToken()
+
+  const solPollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  function clearSolPoll() {
+    if (solPollRef.current !== null) { clearInterval(solPollRef.current); solPollRef.current = null }
+  }
+  useEffect(() => () => clearSolPoll(), [])
+
+  // SOL → Token state
+  const [solAmount, setSolAmount] = useState('')
+  const [solLoading, setSolLoading] = useState(false)
+  const [solMessage, setSolMessage] = useState<string | null>(null)
+  const [solError, setSolError] = useState(false)
+  const [solTxSig, setSolTxSig] = useState<string | null>(null)
+
+  // Token → SOL state
+  const [tokenAmount, setTokenAmount] = useState('')
+  const [tokenLoading, setTokenLoading] = useState(false)
+  const [tokenMessage, setTokenMessage] = useState<string | null>(null)
+  const [tokenError, setTokenError] = useState(false)
+  const [tokenTxSig, setTokenTxSig] = useState<string | null>(null)
+
+  async function handleSolForToken(e: React.FormEvent) {
+    e.preventDefault()
+    if (!publicKey) return
+
+    const lamports = BigInt(Math.round(parseFloat(solAmount) * 1e9))
+    if (lamports <= 0n) {
+      setSolError(true)
+      setSolMessage('SOL amount must be greater than zero.')
+      return
+    }
+
+    setSolLoading(true)
+    setSolError(false)
+    setSolMessage('Submitting SOL → Token swap…')
+    setSolTxSig(null)
+
+    try {
+      const sig = await swapSolForToken(lamports)
+      setSolTxSig(sig)
+      setSolMessage('Transaction confirmed — waiting for worker to credit tokens…')
+      setSolAmount('')
+
+      solPollRef.current = setInterval(async () => {
+        try {
+          const res = await fetch(`${WORKER_URL}/status/${publicKey.toBase58()}`)
+          if (!res.ok) return
+          const data = await res.json() as { ops: Array<{ type: string; status: string; error?: string }> }
+          const op = data.ops.find(o => o.type === 'swap_sol_for_token')
+          if (!op) return
+          if (op.status === 'done') {
+            clearSolPoll()
+            setSolLoading(false)
+            setSolMessage('Swap fulfilled! Tokens added to your encrypted balance.')
+          } else if (op.status === 'error') {
+            clearSolPoll()
+            setSolLoading(false)
+            setSolError(true)
+            setSolMessage(`Worker error: ${op.error ?? 'Unknown error'}`)
+          }
+        } catch { /* network blip */ }
+      }, 2000)
+    } catch (err) {
+      clearSolPoll()
+      setSolLoading(false)
+      setSolError(true)
+      setSolMessage(err instanceof Error ? err.message : String(err))
+    }
+  }
+
+  async function handleTokenForSol(e: React.FormEvent) {
+    e.preventDefault()
+    if (!publicKey) return
+
+    const parsed = BigInt(Math.round(parseFloat(tokenAmount)))
+    if (parsed <= 0n) {
+      setTokenError(true)
+      setTokenMessage('Amount must be greater than zero.')
+      return
+    }
+
+    setTokenLoading(true)
+    setTokenError(false)
+    setTokenMessage('Registering swap intent and submitting request…')
+    setTokenTxSig(null)
+
+    try {
+      const sig = await swapTokenForSolRequest(parsed)
+      setTokenTxSig(sig)
+      setTokenMessage(
+        `Swap request submitted! The worker will send ${parsed.toString()} SOL shortly.`,
+      )
+      setTokenAmount('')
+    } catch (err) {
+      setTokenError(true)
+      setTokenMessage(err instanceof Error ? err.message : String(err))
+    } finally {
+      setTokenLoading(false)
+    }
+  }
+
+  function explorerUrl(sig: string) {
+    return `https://explorer.solana.com/tx/${sig}?cluster=devnet`
+  }
+
+  return (
+    <div className="card">
+      <h2>Swap</h2>
+
+      {/* SOL → Token */}
+      <div className="swap-section">
+        <h3>SOL → Token</h3>
+        <p className="description">
+          Send SOL to the pool; the worker fulfills by adding encrypted tokens to your
+          balance.
+        </p>
+        <form onSubmit={handleSolForToken} className="form">
+          <label className="field">
+            <span>Amount (SOL)</span>
+            <input
+              type="number"
+              placeholder="0.0"
+              min="0.000000001"
+              step="any"
+              value={solAmount}
+              onChange={(e) => setSolAmount(e.target.value)}
+              required
+              disabled={solLoading}
+            />
+          </label>
+
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={!publicKey || solLoading || !solAmount}
+          >
+            {solLoading ? 'Swapping…' : 'Swap SOL for Token'}
+          </button>
+        </form>
+
+        {solMessage && (
+          <div className={`status-msg ${solError ? 'status-error' : 'status-fulfilled'}`}>
+            {solMessage}
+          </div>
+        )}
+        {solTxSig && (
+          <div className="explorer-link">
+            <a href={explorerUrl(solTxSig)} target="_blank" rel="noopener noreferrer">
+              View transaction on Solana Explorer ↗
+            </a>
+          </div>
+        )}
+      </div>
+
+      <div className="swap-divider" />
+
+      {/* Token → SOL */}
+      <div className="swap-section">
+        <h3>Token → SOL</h3>
+        <p className="description">
+          Swap tokens back to SOL. The worker decrypts your balance, sends the
+          equivalent SOL, and updates your remaining encrypted balance.
+        </p>
+
+        <form onSubmit={handleTokenForSol} className="form">
+          <label className="field">
+            <span>Amount (tokens)</span>
+            <input
+              type="number"
+              placeholder="1"
+              min="1"
+              step="1"
+              value={tokenAmount}
+              onChange={(e) => setTokenAmount(e.target.value)}
+              required
+              disabled={tokenLoading}
+            />
+          </label>
+
+          <button
+            type="submit"
+            className="btn btn-secondary"
+            disabled={!publicKey || tokenLoading || !tokenAmount}
+          >
+            {tokenLoading ? 'Requesting…' : 'Swap Tokens for SOL'}
+          </button>
+        </form>
+
+        {tokenMessage && (
+          <div
+            className={`status-msg ${tokenError ? 'status-error' : 'status-fulfilled'}`}
+          >
+            {tokenMessage}
+          </div>
+        )}
+        {tokenTxSig && (
+          <div className="explorer-link">
+            <a href={explorerUrl(tokenTxSig)} target="_blank" rel="noopener noreferrer">
+              View transaction on Solana Explorer ↗
+            </a>
+          </div>
+        )}
+      </div>
+
+      {!publicKey && <p className="note">Connect your wallet to swap.</p>}
+    </div>
+  )
+}
