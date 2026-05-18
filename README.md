@@ -157,7 +157,7 @@ anchor test   # 10 integration tests — all passing
 
 ---
 
-## Program IDs (localnet)
+## Program IDs (devnet)
 
 | Program | Address |
 |---|---|
