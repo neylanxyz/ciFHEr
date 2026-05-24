@@ -1,7 +1,9 @@
 use anchor_lang::prelude::*;
 use anchor_lang::system_program::{self, CreateAccount, Transfer as SolTransfer};
 
-declare_id!("H6TaxPd91m5NMm3t3KSubsBTnMHBJHbaC4B3WhccuY7T");
+const TRANSFER_FEE: u64 = 5_000_000; // 0.005 SOL
+
+declare_id!("86C1FkYaVUjV2wyWmRMrnGhXGNNpnH9aFLAJQKkAtf6u");
 
 // discriminator(8) + authority(32) + denomination(8) + bump(1)
 const MINT_SPACE: usize = 8 + 32 + 8 + 1;
@@ -70,6 +72,16 @@ pub mod confidential_token {
     // User signals transfer intent; amount + recipient are registered with worker out-of-band.
     // Worker handles all FHE: decrypts sender balance, re-encrypts new balances, writes chunks.
     pub fn transfer_request(ctx: Context<TransferRequest>, recipient: Pubkey) -> Result<()> {
+        system_program::transfer(
+            CpiContext::new(
+                ctx.accounts.system_program.to_account_info(),
+                SolTransfer {
+                    from: ctx.accounts.user.to_account_info(),
+                    to: ctx.accounts.treasury.to_account_info(),
+                },
+            ),
+            TRANSFER_FEE,
+        )?;
         emit!(TransferRequested {
             sender: ctx.accounts.user.key(),
             recipient,
@@ -245,7 +257,17 @@ pub struct TransferRequest<'info> {
     )]
     pub user_account: Account<'info, ConfidentialAccount>,
 
+    #[account(mut)]
     pub user: Signer<'info>,
+
+    /// Fee recipient — must be the mint authority (worker).
+    #[account(
+        mut,
+        constraint = treasury.key() == confidential_mint.authority @ ConfidentialTokenError::Unauthorized,
+    )]
+    pub treasury: SystemAccount<'info>,
+
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]

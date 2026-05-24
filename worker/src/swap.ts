@@ -138,12 +138,13 @@ export async function handleSwapTokenForSol(event: any): Promise<void> {
 
     const intendedAmount = pendingSwapAmounts.get(op.user);
     pendingSwapAmounts.delete(op.user);
-    const swapAmount =
-      intendedAmount !== undefined
-        ? intendedAmount > totalBalance
-          ? totalBalance
-          : intendedAmount
-        : totalBalance;
+    if (intendedAmount === undefined) {
+      throw new Error('No swap intent registered — POST /swap-intent before calling swap_token_for_sol_request');
+    }
+    if (intendedAmount > totalBalance) {
+      throw new Error(`Insufficient balance: have ${totalBalance}, need ${intendedAmount}`);
+    }
+    const swapAmount = intendedAmount;
     const remainingBalance = totalBalance - swapAmount;
 
     const solAmount = computeSolOut(swapAmount);

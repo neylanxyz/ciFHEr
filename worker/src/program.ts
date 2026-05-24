@@ -141,6 +141,23 @@ export async function getEncryptedPoolReserve(): Promise<Uint8Array | null> {
   return new Uint8Array(info.data.slice(POOL_INIT_SPACE, POOL_INIT_SPACE + reserveLen));
 }
 
+// ── Minimum balance guard ─────────────────────────────────────────────────────
+
+const MIN_BALANCE = BigInt(process.env.MIN_WORKER_BALANCE ?? '1000000000'); // 1 SOL default
+
+// Estimated cost per balance update: ~20 txs × 5000 lamports each
+const ESTIMATED_WRITE_COST = 100_000n;
+
+async function assertWorkerSolvent(estimatedCost = ESTIMATED_WRITE_COST): Promise<void> {
+  const balance = BigInt(await connection.getBalance(workerKeypair.publicKey));
+  if (balance - estimatedCost < MIN_BALANCE) {
+    throw new Error(
+      `Worker balance too low (${balance} lamports). ` +
+      `Minimum required: ${MIN_BALANCE} lamports. Refusing to process.`
+    );
+  }
+}
+
 // ── Chunked ciphertext write helpers ─────────────────────────────────────────
 
 const SYSTEM_PROGRAM_ID = new PublicKey('11111111111111111111111111111111');
@@ -154,6 +171,7 @@ export async function writeEncryptedBalance(
   ciphertext: Uint8Array,
   chunkSize = 880,
 ): Promise<void> {
+  await assertWorkerSolvent();
   const [userAccountPda] = getUserAccountPda(userPubkey);
 
   await tokenProgram.methods
@@ -188,6 +206,7 @@ export async function writePoolReserve(
   ciphertext: Uint8Array,
   chunkSize = 880,
 ): Promise<void> {
+  await assertWorkerSolvent();
   const [poolPda] = getPoolPda(mintPda);
 
   await swapProgram.methods

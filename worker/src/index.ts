@@ -26,6 +26,7 @@ import { PublicKey, SystemProgram } from '@solana/web3.js';
 import BN from 'bn.js';
 
 import { initFhe, getPublicKeyBytes, decrypt } from './fhe';
+import { verifyAndCreateSession, requireAuth } from './auth';
 import {
   tokenProgram,
   swapProgram,
@@ -91,6 +92,18 @@ app.get('/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok' });
 });
 
+// POST /auth — verify wallet signature, return session token (4h TTL)
+app.post('/auth', (req: Request, res: Response) => {
+  const result = verifyAndCreateSession(req.body as {
+    pubkey?: string; message?: string; signature?: string
+  });
+  if ('error' in result) {
+    res.status(401).json(result);
+  } else {
+    res.json(result);
+  }
+});
+
 // Returns the raw serialized CompactPublicKey bytes (proxied from sidecar).
 app.get('/public-key', async (_req: Request, res: Response) => {
   try {
@@ -103,7 +116,7 @@ app.get('/public-key', async (_req: Request, res: Response) => {
 });
 
 // Frontend calls this BEFORE submitting transfer_request on-chain.
-app.post('/transfer-intent', (req: Request, res: Response) => {
+app.post('/transfer-intent', requireAuth(req => (req.body as any)?.user), (req: Request, res: Response) => {
   const { user, recipient, amount } = req.body as {
     user?: string;
     recipient?: string;
@@ -125,7 +138,7 @@ app.post('/transfer-intent', (req: Request, res: Response) => {
 });
 
 // Frontend calls this BEFORE submitting swap_token_for_sol_request on-chain.
-app.post('/swap-intent', (req: Request, res: Response) => {
+app.post('/swap-intent', requireAuth(req => (req.body as any)?.user), (req: Request, res: Response) => {
   const { user, tokenAmount } = req.body as { user?: string; tokenAmount?: string };
   if (!user || tokenAmount === undefined) {
     res.status(400).json({ error: 'Missing user or tokenAmount' });
@@ -150,7 +163,7 @@ app.get('/status/:userId', (req: Request, res: Response) => {
   res.json({ ops });
 });
 
-app.get('/balance/:userId', async (req: Request, res: Response) => {
+app.get('/balance/:userId', requireAuth(req => req.params.userId), async (req: Request, res: Response) => {
   const { userId } = req.params;
   try {
     const userPubkey = new PublicKey(userId);
@@ -173,6 +186,35 @@ app.get('/balance/:userId', async (req: Request, res: Response) => {
         code: 'KEY_MISMATCH',
       });
     }
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /admin/recover-swap — manually credit a user whose swap event was processed
+// but whose balance write failed (e.g. worker ran out of SOL mid-operation).
+// Body: { secret, userPubkey, solAmountNet }
+// solAmountNet: the net lamports that landed in the vault (sol_amount after 0.3% fee).
+app.post('/admin/recover-swap', async (req: Request, res: Response) => {
+  const { secret, userPubkey, solAmountNet } = req.body as {
+    secret?: string; userPubkey?: string; solAmountNet?: string;
+  };
+  if (secret !== process.env.ADMIN_SECRET) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  if (!userPubkey || !solAmountNet) {
+    res.status(400).json({ error: 'Missing userPubkey or solAmountNet' });
+    return;
+  }
+  try {
+    const event = {
+      user: new PublicKey(userPubkey),
+      solAmount: solAmountNet,
+      sol_amount: solAmountNet,
+    };
+    await handleSwapSolForToken(event);
+    res.json({ ok: true });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -266,6 +308,7 @@ async function bootstrapOnChain(): Promise<void> {
         user: workerKeypair.publicKey,
         pool: poolPda,
         swapVault: swapVaultPda,
+        treasury: workerKeypair.publicKey,
         systemProgram: SystemProgram.programId,
       })
       .rpc();

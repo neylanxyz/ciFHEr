@@ -1,7 +1,9 @@
 use anchor_lang::prelude::*;
-use anchor_lang::system_program::{self, CreateAccount};
+use anchor_lang::system_program::{self, CreateAccount, Transfer as SolTransfer};
 
-declare_id!("HyL5r4euova77wUoJVMA7hj8Y2s1jvJr55zSqAB1gvAa");
+const SWAP_FEE_BPS: u64 = 30; // 0.30 %
+
+declare_id!("A2vktybx3Nahc7THvSckeVioTobVkHNEXM5ZteGkoLDK");
 
 // discriminator(8) + worker_authority(32) + token_mint(32) +
 // token_reserve_len(4) + sol_reserve(8) +
@@ -132,20 +134,43 @@ pub mod confidential_swap {
         Ok(())
     }
 
+    // sol_amount = what the user wants to swap (goes to vault 1:1).
+    // Fee (0.3% of sol_amount) is charged on top and sent to treasury.
+    // Total deducted from user = sol_amount + fee.
     pub fn swap_sol_for_token(ctx: Context<SwapSolForToken>, sol_amount: u64) -> Result<()> {
         require!(sol_amount > 0, ConfidentialSwapError::ZeroAmount);
+
+        let fee = sol_amount * SWAP_FEE_BPS / 10_000;
+
+        // Full swap amount → vault (backs the token 1:1)
         system_program::transfer(
             CpiContext::new(
                 ctx.accounts.system_program.to_account_info(),
-                system_program::Transfer {
+                SolTransfer {
                     from: ctx.accounts.user.to_account_info(),
                     to: ctx.accounts.swap_vault.to_account_info(),
                 },
             ),
             sol_amount,
         )?;
+
+        // Fee on top → treasury
+        if fee > 0 {
+            system_program::transfer(
+                CpiContext::new(
+                    ctx.accounts.system_program.to_account_info(),
+                    SolTransfer {
+                        from: ctx.accounts.user.to_account_info(),
+                        to: ctx.accounts.treasury.to_account_info(),
+                    },
+                ),
+                fee,
+            )?;
+        }
+
         let pool = &mut ctx.accounts.pool;
         pool.sol_reserve = pool.sol_reserve.checked_add(sol_amount).unwrap();
+
         emit!(SwapSolForTokenRequested {
             user: ctx.accounts.user.key(),
             sol_amount,
@@ -286,6 +311,13 @@ pub struct SwapSolForToken<'info> {
         bump,
     )]
     pub swap_vault: SystemAccount<'info>,
+
+    /// Fee recipient — must be the pool's worker authority.
+    #[account(
+        mut,
+        constraint = treasury.key() == pool.worker_authority @ ConfidentialSwapError::Unauthorized,
+    )]
+    pub treasury: SystemAccount<'info>,
 
     pub system_program: Program<'info, System>,
 }

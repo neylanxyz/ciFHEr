@@ -9,14 +9,17 @@ import {
   getMintPda,
   getConfidentialAccountPda,
   getSwapPoolPda,
+  getWorkerAuthority,
 } from '../utils/program'
 import { useFhe } from './useFhe'
+import { useAuth } from './useAuth'
 import { WORKER_URL } from '../utils/constants'
 
 export function useConfidentialToken() {
   const { connection } = useConnection()
   const wallet = useWallet()
   const { fheReady, fheError } = useFhe()
+  const { getToken } = useAuth()
 
   const getProvider = useCallback(() => {
     if (!wallet.publicKey || !wallet.signTransaction || !wallet.signAllTransactions) {
@@ -98,10 +101,14 @@ export function useConfidentialToken() {
         throw new Error('Recipient has not initialized their confidential account')
       }
 
+      // Resolve treasury once (cached after first call)
+      const treasury = await getWorkerAuthority(connection)
+
       // Register transfer intent with worker before on-chain tx
+      const token = await getToken()
       const intentRes = await fetch(`${WORKER_URL}/transfer-intent`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
           user: sender.toBase58(),
           recipient: recipientPubkey,
@@ -119,10 +126,12 @@ export function useConfidentialToken() {
           confidentialMint: mintPda,
           userAccount: (await getConfidentialAccountPda(sender))[0],
           user: sender,
+          treasury,
+          systemProgram: SystemProgram.programId,
         })
         .rpc()
     },
-    [getProvider],
+    [getProvider, getToken],
   )
 
   const burnRequest = useCallback(async (): Promise<string> => {
@@ -143,7 +152,10 @@ export function useConfidentialToken() {
 
   const getBalance = useCallback(async (): Promise<bigint | null> => {
     if (!wallet.publicKey) throw new Error('Wallet not connected')
-    const res = await fetch(`${WORKER_URL}/balance/${wallet.publicKey.toBase58()}`)
+    const token = await getToken()
+    const res = await fetch(`${WORKER_URL}/balance/${wallet.publicKey.toBase58()}`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    })
     if (res.status === 404) return null
     if (!res.ok) {
       const body = await res.json().catch(() => ({})) as { error?: string }
@@ -151,7 +163,7 @@ export function useConfidentialToken() {
     }
     const { balance } = (await res.json()) as { balance: string }
     return BigInt(balance)
-  }, [wallet.publicKey])
+  }, [wallet.publicKey, getToken])
 
   const swapSolForToken = useCallback(
     async (solAmount: bigint): Promise<string> => {
@@ -164,17 +176,19 @@ export function useConfidentialToken() {
         [Buffer.from('swap_vault'), poolPda.toBuffer()],
         swapProg.programId,
       )
+      const treasury = await getWorkerAuthority(connection)
       return swapProg.methods
         .swapSolForToken(new BN(solAmount.toString()))
         .accounts({
           user,
           pool: poolPda,
           swapVault: swapVaultPda,
+          treasury,
           systemProgram: SystemProgram.programId,
         })
         .rpc()
     },
-    [getProvider],
+    [getProvider, connection],
   )
 
   const swapTokenForSolRequest = useCallback(
@@ -184,9 +198,10 @@ export function useConfidentialToken() {
       const user = provider.wallet.publicKey
 
       // Register swap intent with worker
+      const token = await getToken()
       const intentRes = await fetch(`${WORKER_URL}/swap-intent`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ user: user.toBase58(), tokenAmount: tokenAmount.toString() }),
       })
       if (!intentRes.ok) {
@@ -201,7 +216,7 @@ export function useConfidentialToken() {
         .accounts({ user, pool: poolPda })
         .rpc()
     },
-    [getProvider],
+    [getProvider, getToken],
   )
 
   return {

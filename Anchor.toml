@@ -5,13 +5,13 @@ package_manager = "yarn"
 resolution = true
 skip-lint = false
 
-[programs.localnet]
-confidential_swap = "HyL5r4euova77wUoJVMA7hj8Y2s1jvJr55zSqAB1gvAa"
-confidential_token = "H6TaxPd91m5NMm3t3KSubsBTnMHBJHbaC4B3WhccuY7T"
-
 [programs.devnet]
-confidential_swap = "HyL5r4euova77wUoJVMA7hj8Y2s1jvJr55zSqAB1gvAa"
-confidential_token = "H6TaxPd91m5NMm3t3KSubsBTnMHBJHbaC4B3WhccuY7T"
+confidential_swap = "A2vktybx3Nahc7THvSckeVioTobVkHNEXM5ZteGkoLDK"
+confidential_token = "86C1FkYaVUjV2wyWmRMrnGhXGNNpnH9aFLAJQKkAtf6u"
+
+[programs.localnet]
+confidential_swap = "A2vktybx3Nahc7THvSckeVioTobVkHNEXM5ZteGkoLDK"
+confidential_token = "86C1FkYaVUjV2wyWmRMrnGhXGNNpnH9aFLAJQKkAtf6u"
 
 [registry]
 url = "https://api.apr.dev"

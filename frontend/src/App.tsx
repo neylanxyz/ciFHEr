@@ -8,7 +8,6 @@ import '@solana/wallet-adapter-react-ui/styles.css'
 import { RPC_URL } from './utils/constants'
 import { useConfidentialToken } from './hooks/useConfidentialToken'
 import { BalanceDisplay } from './components/BalanceDisplay'
-import { MintPanel } from './components/MintPanel'
 import { TransferPanel } from './components/TransferPanel'
 import { SwapPanel } from './components/SwapPanel'
 import './App.css'
@@ -55,7 +54,7 @@ function AppInner() {
               <p className="connect-eyebrow">Fully Homomorphic Encryption</p>
               <h2>Connect Your Wallet</h2>
               <p>
-                Mint, transfer, and swap confidential tokens. Balances are encrypted
+                Swap, transfer, and hold confidential tokens. Balances are encrypted
                 on-chain — nobody reads them without your key.
               </p>
               <WalletMultiButton />
@@ -89,7 +88,6 @@ function AppInner() {
 
             <div className="grid">
               <BalanceDisplay />
-              <MintPanel />
               <TransferPanel />
               <SwapPanel />
             </div>

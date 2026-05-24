@@ -41,10 +41,10 @@ function fheDecrypt(bytes: Uint8Array): bigint {
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const TOKEN_PROGRAM_ID = new PublicKey(
-  "H6TaxPd91m5NMm3t3KSubsBTnMHBJHbaC4B3WhccuY7T",
+  "86C1FkYaVUjV2wyWmRMrnGhXGNNpnH9aFLAJQKkAtf6u",
 );
 const SWAP_PROGRAM_ID = new PublicKey(
-  "HyL5r4euova77wUoJVMA7hj8Y2s1jvJr55zSqAB1gvAa",
+  "A2vktybx3Nahc7THvSckeVioTobVkHNEXM5ZteGkoLDK",
 );
 const DENOMINATION = new anchor.BN(LAMPORTS_PER_SOL);
 const CHUNK_SIZE = 880;
@@ -345,13 +345,15 @@ describe("ciFHEr — confidential token (real FHE)", () => {
     const newUserBalance = currentBalance - transferAmount;
     const newRecipientBalance = transferAmount;
 
-    // Emit the transfer_request event on-chain
+    // Emit the transfer_request event on-chain (pays 0.005 SOL fee to worker)
     await tokenProgram.methods
       .transferRequest(recipient.publicKey)
       .accounts({
         confidentialMint: mintPda,
         userAccount: userAccountPda,
         user: user.publicKey,
+        treasury: worker.publicKey,
+        systemProgram: SystemProgram.programId,
       })
       .signers([user])
       .rpc();
@@ -405,11 +407,13 @@ describe("ciFHEr — confidential token (real FHE)", () => {
         user: user.publicKey,
         pool: poolPda,
         swapVault: swapVaultPda,
+        treasury: worker.publicKey,
         systemProgram: SystemProgram.programId,
       })
       .signers([user])
       .rpc();
 
+    // sol_reserve holds the full swap amount — fee is charged on top
     const pool = await swapProgram.account.swapPool.fetch(poolPda);
     assert.ok(pool.solReserve.eq(solAmount));
   });
@@ -442,6 +446,7 @@ describe("ciFHEr — confidential token (real FHE)", () => {
         user: worker.publicKey,
         pool: poolPda,
         swapVault: swapVaultPda,
+        treasury: worker.publicKey,
         systemProgram: SystemProgram.programId,
       })
       .rpc();

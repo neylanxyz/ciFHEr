@@ -1,5 +1,5 @@
 {
-  "address": "HyL5r4euova77wUoJVMA7hj8Y2s1jvJr55zSqAB1gvAa",
+  "address": "A2vktybx3Nahc7THvSckeVioTobVkHNEXM5ZteGkoLDK",
   "metadata": {
     "name": "confidential_swap",
     "version": "0.1.0",
@@ -293,6 +293,13 @@
               }
             ]
           }
+        },
+        {
+          "name": "treasury",
+          "docs": [
+            "Fee recipient — must be the pool's worker authority."
+          ],
+          "writable": true
         },
         {
           "name": "system_program",
