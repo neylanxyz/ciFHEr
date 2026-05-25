@@ -15,7 +15,7 @@
     "jsx": "react-jsx",
 
     /* Vite client types for import.meta.env */
-    "types": ["vite/client"],
+    "types": ["vite/client", "node"],
 
     /* Linting — relaxed for hackathon MVP */
     "strict": false,
