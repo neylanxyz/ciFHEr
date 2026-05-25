@@ -6,6 +6,8 @@ A fully-collateralized privacy wrapper for SOL. Balances and transfer amounts ar
 1 cifherSOL = 1 SOL locked in escrow
 ```
 
+Live on **Solana devnet**.
+
 ---
 
 ## How it works
@@ -13,13 +15,13 @@ A fully-collateralized privacy wrapper for SOL. Balances and transfer amounts ar
 Standard tokens expose every balance and every transfer amount on-chain. ciFHEr keeps them encrypted using **Fully Homomorphic Encryption** (FHE). The arithmetic happens directly on ciphertexts — when you transfer tokens, your balance is never decrypted during the operation.
 
 ```
-User wallet   →   mint_request()   →   SOL locked in vault
-                                   →   Worker writes encrypt(1) to your account
+User wallet   →   swap_sol_for_token(1 SOL)   →   SOL locked in vault
+                                               →   Worker writes encrypt(1) to your account
 
-User wallet   →   transfer_request()   →   Worker computes:
-                                              new_sender    = fheSub(senderCt, encAmount)
-                                              new_recipient = fheAdd(recipientCt, encAmount)
-                                       →   No plaintext exposed during arithmetic
+User wallet   →   transfer_request()           →   Worker computes:
+                                                     new_sender    = fheSub(senderCt, encAmount)
+                                                     new_recipient = fheAdd(recipientCt, encAmount)
+                                               →   No plaintext exposed during arithmetic
 ```
 
 On-chain, every balance looks like this:
@@ -106,6 +108,18 @@ pub struct ConfidentialAccount {
 
 ---
 
+## Fees
+
+| Operation | Fee |
+|---|---|
+| SOL → cifherSOL | 0.3% of swap amount (charged on top) |
+| Transfer | 0.005 SOL flat |
+| cifherSOL → SOL | Free |
+
+Fees go to the protocol treasury (worker keypair). The worker maintains a minimum 1 SOL floor and refuses to process operations that would drop it below that.
+
+---
+
 ## Trust model
 
 | Property | ciFHEr |
@@ -114,10 +128,18 @@ pub struct ConfidentialAccount {
 | Hidden balances | ✅ Worker key required to decrypt |
 | Hidden swap amounts | ✅ Confidential pool reserve |
 | Hidden sender/receiver | ❌ Wallet addresses are public |
-| Trustless | ❌ Single worker (MVP) |
-| Infinite mint exploit | ❌ Impossible — SOL transfer is on-chain enforced |
+| Trustless operator | ❌ Single worker (MVP) |
 
 The worker is a trusted operator — same model as most bridges and oracles. The roadmap replaces it with threshold FHE across a decentralized operator network.
+
+---
+
+## Program IDs (devnet)
+
+| Program | Address |
+|---|---|
+| `confidential_token` | `86C1FkYaVUjV2wyWmRMrnGhXGNNpnH9aFLAJQKkAtf6u` |
+| `confidential_swap` | `A2vktybx3Nahc7THvSckeVioTobVkHNEXM5ZteGkoLDK` |
 
 ---
 
@@ -131,35 +153,34 @@ solana-test-validator --reset &
 anchor build && anchor deploy
 
 # 2. Build the FHE sidecar (one-time, ~2 min)
-cd fhe-sidecar
-cargo build --release
-cd ..
+cd fhe-sidecar && cargo build --release && cd ..
 
-# 3. Start worker (auto-spawns the FHE sidecar)
+# 3. Configure and start the worker (auto-spawns the FHE sidecar)
 cd worker
-cp .env.example .env
-npm install
-npm run dev
+cp .env.example .env   # edit SOLANA_RPC_URL, WORKER_KEYPAIR_PATH, ADMIN_SECRET
+npm install && npm run dev
 
-# 3. Start frontend
+# 4. Start the frontend
 cd ../frontend
-npm install
-npm run dev
+npm install && npm run dev   # localhost:5173
 ```
 
 First run generates FHE keys (`fhe-sidecar/.fhe-keys/`) — takes 30–120 seconds. Subsequent starts load from disk in ~1 second.
 
-### Running tests
+### Tests
 
 ```bash
 anchor test   # 10 integration tests — all passing
 ```
 
----
+Tests use the tfhe WASM package directly and do not require the fhe-sidecar to be running.
 
-## Program IDs (localnet)
+### Worker env vars
 
-| Program | Address |
-|---|---|
-| `confidential_token` | `H6TaxPd91m5NMm3t3KSubsBTnMHBJHbaC4B3WhccuY7T` |
-| `confidential_swap` | `HyL5r4euova77wUoJVMA7hj8Y2s1jvJr55zSqAB1gvAa` |
+```env
+SOLANA_RPC_URL=http://127.0.0.1:8899
+WORKER_KEYPAIR_PATH=~/.config/solana/id.json
+DENOMINATION=1000000000
+PORT=3001
+ADMIN_SECRET=<your-secret>
+```

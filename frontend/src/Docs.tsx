@@ -338,8 +338,8 @@ let sufficient: FheBool = sender_balance.ge(&enc_amount);
             <Table
               headers={['Program', 'Address']}
               rows={[
-                ['confidential_token', 'H6TaxPd91m5NMm3t3KSubsBTnMHBJHbaC4B3WhccuY7T'],
-                ['confidential_swap',  'HyL5r4euova77wUoJVMA7hj8Y2s1jvJr55zSqAB1gvAa'],
+                ['confidential_token', '86C1FkYaVUjV2wyWmRMrnGhXGNNpnH9aFLAJQKkAtf6u'],
+                ['confidential_swap',  'A2vktybx3Nahc7THvSckeVioTobVkHNEXM5ZteGkoLDK'],
               ]}
             />
 
@@ -361,7 +361,7 @@ let sufficient: FheBool = sender_balance.ge(&enc_amount);
 initialize_mint(denomination: u64)
 initialize_account()
 mint_request()                        // pays denomination lamports → vault
-transfer_request(recipient: Pubkey)   // emits TransferRequested event
+transfer_request(recipient: Pubkey)   // pays 0.005 SOL fee → treasury; emits TransferRequested
 burn_request()                        // emits BurnRequested event
 
 // Worker-only
@@ -374,8 +374,10 @@ fulfill_burn(sol_to_send: u64)
             <Code>{`
 // User-callable
 initialize_pool(price_numerator: u64, price_denominator: u64)
-swap_sol_for_token(sol_amount: u64)       // emits SwapSolForTokenRequested
-swap_token_for_sol_request()              // emits SwapTokenForSolRequested
+// swap_sol_for_token: user pays sol_amount → vault (1:1 tokens issued)
+//   + fee (0.3% of sol_amount) → treasury on top. emits SwapSolForTokenRequested.
+swap_sol_for_token(sol_amount: u64)
+swap_token_for_sol_request()              // free; emits SwapTokenForSolRequested
 
 // Worker-only
 begin_write_pool_reserve(new_size: u32)
@@ -388,17 +390,34 @@ fulfill_token_for_sol(sol_amount: u64)
           <section id="api" className="d-section">
             <p className="d-eyebrow">API Reference</p>
             <h2 className="d-h2">Worker REST API <span className="d-port">:3001</span></h2>
+            <p className="d-p">
+              Endpoints marked <strong>🔒 auth</strong> require an <InlineCode>Authorization: Bearer &lt;token&gt;</InlineCode> header.
+              Obtain a token via <InlineCode>POST /auth</InlineCode>.
+            </p>
             <Table
-              headers={['Method', 'Endpoint', 'Description']}
+              headers={['Method', 'Endpoint', 'Auth', 'Description']}
               rows={[
-                ['GET',  '/health',             'Liveness check'],
-                ['GET',  '/public-key',          'Serialized CompactPublicKey bytes (octet-stream)'],
-                ['GET',  '/balance/:pubkey',     'Decrypt and return user balance'],
-                ['GET',  '/status/:pubkey',      'Pending ops for a user'],
-                ['POST', '/transfer-intent',     'Register { user, recipient, amount } before transfer_request'],
-                ['POST', '/swap-intent',         'Register { user, tokenAmount } before swap_token_for_sol_request'],
+                ['GET',  '/health',           '—',  'Liveness check'],
+                ['GET',  '/public-key',        '—',  'Serialized CompactPublicKey bytes (octet-stream)'],
+                ['POST', '/auth',              '—',  'Verify wallet signature → session token (4h TTL)'],
+                ['GET',  '/balance/:pubkey',   '🔒', 'Decrypt and return user balance'],
+                ['GET',  '/status/:pubkey',    '—',  'Pending ops for a user'],
+                ['POST', '/transfer-intent',   '🔒', 'Register { user, recipient, amount } before transfer_request'],
+                ['POST', '/swap-intent',       '🔒', 'Register { user, tokenAmount } before swap_token_for_sol_request'],
               ]}
             />
+            <h3 className="d-h3">Authentication</h3>
+            <Code>{`
+// 1. Sign this message with your wallet
+const message = \`ciFHEr auth\\npubkey: \${pubkey}\\ntimestamp: \${Date.now()}\`
+
+// 2. POST /auth
+{ pubkey, message, signature }  // signature as base58
+→ { token: "<uuid>" }
+
+// 3. Use token on protected endpoints
+Authorization: Bearer <token>
+            `}</Code>
 
             <h2 className="d-h2">fhe-sidecar HTTP API <span className="d-port">:3002</span></h2>
             <Table
@@ -469,13 +488,14 @@ anchor test        # 10 integration tests — all passing
             <h3 className="d-h3">Environment variables</h3>
             <Code>{`
 # worker/.env
-SOLANA_RPC_URL=http://127.0.0.1:8899
+SOLANA_RPC_URL=http://127.0.0.1:8899   # or https://api.devnet.solana.com
 WORKER_KEYPAIR_PATH=~/.config/solana/id.json
 DENOMINATION=1000000000
 PORT=3001
+ADMIN_SECRET=<choose-a-secret>         # for POST /admin/recover-swap
 
 # frontend/.env
-VITE_RPC_URL=http://127.0.0.1:8899
+VITE_RPC_URL=http://127.0.0.1:8899     # or https://api.devnet.solana.com
 VITE_WORKER_URL=http://localhost:3001
             `}</Code>
           </section>
