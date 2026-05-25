@@ -100,6 +100,21 @@
 }
 
 /* =========================================================
+   Worker offline banner
+   ========================================================= */
+
+.worker-banner {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-left: 2px solid var(--text-dim);
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 2rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+}
+
+/* =========================================================
    Connect prompt
    ========================================================= */
 

@@ -7,6 +7,7 @@ import '@solana/wallet-adapter-react-ui/styles.css'
 
 import { RPC_URL } from './utils/constants'
 import { useConfidentialToken } from './hooks/useConfidentialToken'
+import { useWorkerHealth } from './hooks/useWorkerHealth'
 import { BalanceDisplay } from './components/BalanceDisplay'
 import { TransferPanel } from './components/TransferPanel'
 import { SwapPanel } from './components/SwapPanel'
@@ -15,6 +16,7 @@ import './App.css'
 function AppInner() {
   const { publicKey } = useWallet()
   const { initializeAccount } = useConfidentialToken()
+  const workerOnline = useWorkerHealth()
 
   const [initLoading, setInitLoading] = useState(false)
   const [initMessage, setInitMessage] = useState<string | null>(null)
@@ -50,6 +52,11 @@ function AppInner() {
       </header>
 
       <main className="app-main">
+        {workerOnline === false && (
+          <div className="worker-banner">
+            Worker offline — mint, transfer, and swap are unavailable.
+          </div>
+        )}
         {!publicKey ? (
           <div className="connect-prompt">
             <div className="connect-card">
