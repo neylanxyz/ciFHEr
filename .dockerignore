@@ -1,0 +1,17 @@
+target/
+fhe-sidecar/target/
+node_modules/
+worker/node_modules/
+frontend/node_modules/
+frontend/
+programs/
+tests/
+test-ledger/
+.anchor/
+.git/
+fhe-sidecar/.fhe-keys/
+*.json.bak
+github
+github.pub
+pitch.txt
+CONTEXT.md
