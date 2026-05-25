@@ -38,12 +38,14 @@ function AppInner() {
   return (
     <div className="app">
       <header className="app-header">
-        <div className="header-content">
-          <div className="logo">
-            <span className="logo-text">c<span className="logo-i">ı<span className="logo-asterisk">*</span></span>FHEr</span>
-          </div>
-          <p className="tagline">Confidential Tokens on Solana</p>
-        </div>
+        <a href="/" className="header-logo">
+          <span className="logo-text">c<span className="logo-i">ı<span className="logo-asterisk">*</span></span>FHEr</span>
+          <span className="header-badge">Devnet</span>
+        </a>
+        <nav className="header-nav">
+          <a href="/docs" className="header-nav-link">Docs</a>
+          <a href="https://github.com/neylanxyz/ciFHEr" target="_blank" rel="noopener noreferrer" className="header-nav-link">GitHub ↗</a>
+        </nav>
         <WalletMultiButton />
       </header>
 

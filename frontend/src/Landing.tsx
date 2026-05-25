@@ -24,12 +24,12 @@ const STEPS = [
   {
     n: '01',
     title: 'Swap SOL for cifherSOL',
-    body: 'Deposit SOL and receive confidential tokens, pegged 1:1. Your balance is encrypted the moment it lands on-chain.',
+    body: 'Deposit SOL and receive confidential tokens, pegged 1:1. A 0.3% protocol fee is charged on top. Your balance is encrypted the moment it lands on-chain.',
   },
   {
     n: '02',
     title: 'Transfer privately',
-    body: 'Send tokens to anyone on Solana. The amount is invisible — to validators, to block explorers, to everyone but you.',
+    body: 'Send tokens to anyone on Solana. The amount is invisible — to validators, to block explorers, to everyone but you. A flat 0.005 SOL fee covers the operation.',
   },
   {
     n: '03',
@@ -58,6 +58,18 @@ export function Landing() {
   return (
     <div className="landing">
 
+      {/* ── TOP NAV ── */}
+      <nav className="l-nav">
+        <a href="/" className="l-nav-logo">
+          c<span className="l-logo-i">ı<span className="l-logo-dot">*</span></span>FHEr
+        </a>
+        <div className="l-nav-links">
+          <a href="/docs" className="l-nav-link">Docs</a>
+          <a href="https://github.com/neylanxyz/ciFHEr" target="_blank" rel="noopener noreferrer" className="l-nav-link">GitHub ↗</a>
+          <a href="/app" className="l-btn-launch l-btn-nav">Launch App</a>
+        </div>
+      </nav>
+
       {/* ── HERO ── */}
       <section className="l-hero">
         <div className="l-cipher-bg" aria-hidden="true">
@@ -70,9 +82,11 @@ export function Landing() {
           </h1>
           <p className="l-hero-tagline">Your balance. Nobody else's business.</p>
           <p className="l-hero-sub">Swap, transfer, and hold SOL-backed tokens with fully encrypted balances.</p>
-          <a href="/app" className="l-btn-launch">Launch App</a>
         </div>
-        <div className="l-scroll-hint" aria-hidden="true">↓</div>
+        <div className="l-scroll-hint" aria-hidden="true">
+          <span className="l-scroll-label">scroll to explore</span>
+          <span className="l-scroll-arrow">↓</span>
+        </div>
       </section>
 
       {/* ── THE CIPHER ── */}

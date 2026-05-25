@@ -36,12 +36,69 @@
   to   { transform: translateY(-50%); }
 }
 
+/* ── Top nav ── */
+
+.l-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 2.5rem;
+  background: rgba(8, 8, 8, 0.88);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.l-nav-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.l-nav-logo .l-logo-dot {
+  top: 0.7em;
+}
+
+.l-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.l-nav-link {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.l-nav-link:hover {
+  color: var(--accent);
+}
+
+.l-btn-nav {
+  animation: none;
+  padding: 0.6rem 1.5rem;
+  font-size: 0.75rem;
+}
+
 /* ── Hero ── */
 
 .l-hero {
   position: relative;
   height: 100vh;
   min-height: 600px;
+  padding-top: 4rem; /* nav offset */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -62,7 +119,7 @@
 
 .l-hero-label {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   letter-spacing: 0.25em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -105,7 +162,7 @@
 
 .l-hero-sub {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: clamp(0.6rem, 1.4vw, 0.8rem);
+  font-size: clamp(0.78rem, 1.4vw, 0.95rem);
   letter-spacing: 0.1em;
   color: var(--text-muted);
   animation: fade-up 0.9s ease 0.6s both;
@@ -144,15 +201,37 @@
   bottom: 2.5rem;
   left: 50%;
   transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  z-index: 1;
+  animation: hint-fade 0.9s ease 1.4s both;
+}
+
+.l-scroll-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.l-scroll-arrow {
   font-size: 1rem;
   color: var(--text-muted);
-  animation: hint-bounce 2.2s ease-in-out 1.6s infinite both;
-  z-index: 1;
+  animation: hint-bounce 2.4s ease-in-out 2s infinite;
 }
 
 @keyframes hint-bounce {
-  0%, 100% { transform: translateX(-50%) translateY(0);   opacity: 0.4; }
-  50%       { transform: translateX(-50%) translateY(7px); opacity: 1;   }
+  0%, 100% { transform: translateY(0);   opacity: 0.45; }
+  50%       { transform: translateY(6px); opacity: 1;    }
+}
+
+@keyframes hint-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 @keyframes fade-up {
@@ -203,7 +282,7 @@
 
 .l-eyebrow {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.6rem;
+  font-size: 0.72rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -240,7 +319,7 @@
 }
 
 .l-body-text {
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--text-muted);
   line-height: 1.85;
   font-weight: 300;
@@ -269,7 +348,7 @@
 
 .l-compare-label {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.6rem;
+  font-size: 0.72rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -277,7 +356,7 @@
 }
 
 .l-compare-text {
-  font-size: 0.875rem;
+  font-size: 1rem;
   line-height: 1.85;
   color: var(--text-muted);
   font-weight: 300;
@@ -327,7 +406,7 @@
 
 .l-step-n {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.6rem;
+  font-size: 0.72rem;
   letter-spacing: 0.1em;
   color: var(--text-muted);
   padding-top: 0.3rem;
@@ -335,7 +414,7 @@
 
 .l-step-title {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 1.6rem;
+  font-size: 1.9rem;
   font-weight: 400;
   color: var(--accent);
   letter-spacing: -0.01em;
@@ -344,7 +423,7 @@
 }
 
 .l-step-text {
-  font-size: 0.85rem;
+  font-size: 1rem;
   color: var(--text-muted);
   line-height: 1.85;
   font-weight: 300;
@@ -411,7 +490,7 @@
 
 .l-cta-sub {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.65rem;
+  font-size: 0.8rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -430,7 +509,7 @@
 .l-footer p,
 .l-footer a {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.6rem;
+  font-size: 0.72rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--text-muted);
