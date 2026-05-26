@@ -163,7 +163,7 @@ app.get('/status/:userId', (req: Request, res: Response) => {
   res.json({ ops });
 });
 
-app.get('/balance/:userId', requireAuth(req => req.params.userId), async (req: Request, res: Response) => {
+app.get('/balance/:userId', requireAuth(req => req.params.userId as string), async (req: Request, res: Response) => {
   const { userId } = req.params;
   try {
     const userPubkey = new PublicKey(userId);
