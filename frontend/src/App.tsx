@@ -12,6 +12,7 @@ import { useWorkerBusy, WorkerBusyProvider } from './hooks/useWorkerBusy'
 import { BalanceDisplay } from './components/BalanceDisplay'
 import { TransferPanel } from './components/TransferPanel'
 import { SwapPanel } from './components/SwapPanel'
+import { CiphertextPanel } from './components/CiphertextPanel'
 import './App.css'
 
 function AppInner() {
@@ -108,6 +109,7 @@ function AppInner() {
               <BalanceDisplay />
               <TransferPanel />
               <SwapPanel />
+              <CiphertextPanel />
             </div>
           </>
         )}

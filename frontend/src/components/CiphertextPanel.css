@@ -1,0 +1,50 @@
+.cipher-card {
+  justify-content: space-between;
+}
+
+.cipher-block {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  line-height: 1.9;
+  letter-spacing: 0.04em;
+  border: 1px solid var(--border);
+  padding: 1rem 1.25rem;
+  overflow: hidden;
+  user-select: none;
+}
+
+.cipher-row {
+  display: flex;
+  gap: 1.25rem;
+  align-items: baseline;
+}
+
+.cipher-addr {
+  color: var(--text-muted);
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+
+.cipher-bytes {
+  display: flex;
+  gap: 0.15rem;
+  flex-wrap: nowrap;
+}
+
+.cipher-byte {
+  color: var(--text-dim);
+  transition: color 0.06s ease;
+}
+
+.cipher-byte:nth-child(odd) {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.cipher-ellipsis {
+  margin-top: 0.5rem;
+  color: var(--text-muted);
+  text-align: center;
+  letter-spacing: 0.1em;
+  font-size: 0.65rem;
+  opacity: 0.5;
+}
