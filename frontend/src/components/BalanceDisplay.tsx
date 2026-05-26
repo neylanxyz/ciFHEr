@@ -1,16 +1,19 @@
 import { useState } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { useConfidentialToken } from '../hooks/useConfidentialToken'
+import { useWorkerBusy } from '../hooks/useWorkerBusy'
 
 export function BalanceDisplay() {
   const { publicKey } = useWallet()
   const { getBalance } = useConfidentialToken()
+  const { workerBusy, beginWorkerTask, endWorkerTask } = useWorkerBusy()
 
   const [balance, setBalance] = useState<bigint | null | undefined>(undefined)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   async function handleRefresh() {
+    beginWorkerTask('Decrypting balance')
     setLoading(true)
     setError(null)
     try {
@@ -20,6 +23,7 @@ export function BalanceDisplay() {
       setError(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
+      endWorkerTask()
     }
   }
 
@@ -37,7 +41,7 @@ export function BalanceDisplay() {
     return { amount: b.toString(), unit: `cifherSOL` }
   }
 
-  const formatted = balance !== undefined && balance !== null && typeof balance !== 'undefined'
+  const formatted = balance !== undefined && balance !== null
     ? formatBalance(balance as bigint | null)
     : null
 
@@ -46,7 +50,9 @@ export function BalanceDisplay() {
       <h2>Your Balance</h2>
 
       <div className="balance-value">
-        {loading ? (
+        {workerBusy && !loading ? (
+          <span className="balance-placeholder">—</span>
+        ) : loading ? (
           <span className="spinner" aria-label="Loading" />
         ) : balance === undefined ? (
           <span className="balance-placeholder">—</span>
@@ -60,14 +66,20 @@ export function BalanceDisplay() {
         )}
       </div>
 
-      {error && <div className="error-msg">{error}</div>}
+      {!workerBusy && error && <div className="error-msg">{error}</div>}
 
-      <button className="btn btn-secondary" onClick={handleRefresh} disabled={loading}>
+      <button
+        className="btn btn-secondary"
+        onClick={handleRefresh}
+        disabled={workerBusy}
+      >
         {loading ? 'Decrypting…' : 'Decrypt Balance'}
       </button>
 
       <p className="note">
-        Decrypted on demand by the worker. On-chain, your balance is ciphertext.
+        {workerBusy
+          ? 'Balance unavailable while worker is processing.'
+          : 'Decrypted on demand by the worker. On-chain, your balance is ciphertext.'}
       </p>
     </div>
   )
