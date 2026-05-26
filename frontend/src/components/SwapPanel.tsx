@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { useConfidentialToken } from '../hooks/useConfidentialToken'
+import { useWorkerBusy } from '../hooks/useWorkerBusy'
 import { WORKER_URL } from '../utils/constants'
 
 export function SwapPanel() {
   const { publicKey: walletKey } = useWallet()
   const { swapSolForToken, swapTokenForSolRequest } = useConfidentialToken()
+  const { workerBusy, beginWorkerTask, endWorkerTask } = useWorkerBusy()
 
   const solPollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   function clearSolPoll() {
@@ -15,21 +17,19 @@ export function SwapPanel() {
 
   // SOL → Token
   const [solAmount, setSolAmount] = useState('')
-  const [solLoading, setSolLoading] = useState(false)
   const [solMessage, setSolMessage] = useState<string | null>(null)
   const [solError, setSolError] = useState(false)
   const [solTxSig, setSolTxSig] = useState<string | null>(null)
 
   // Token → SOL
   const [tokenAmount, setTokenAmount] = useState('')
-  const [tokenLoading, setTokenLoading] = useState(false)
   const [tokenMessage, setTokenMessage] = useState<string | null>(null)
   const [tokenError, setTokenError] = useState(false)
   const [tokenTxSig, setTokenTxSig] = useState<string | null>(null)
 
   async function handleSolForToken(e: React.FormEvent) {
     e.preventDefault()
-    if (!walletKey) return
+    if (!walletKey || workerBusy) return
 
     const lamports = BigInt(Math.round(parseFloat(solAmount) * 1e9))
     if (lamports <= 0n) {
@@ -38,15 +38,15 @@ export function SwapPanel() {
       return
     }
 
-    setSolLoading(true)
+    beginWorkerTask('Processing SOL → cifherSOL swap — waiting for worker to encrypt balance')
     setSolError(false)
-    setSolMessage('Submitting swap…')
+    setSolMessage('Submitting swap transaction…')
     setSolTxSig(null)
 
     try {
       const sig = await swapSolForToken(lamports)
       setSolTxSig(sig)
-      setSolMessage('Transaction confirmed — waiting for worker…')
+      setSolMessage('Transaction confirmed — worker is encrypting your balance…')
       setSolAmount('')
 
       solPollRef.current = setInterval(async () => {
@@ -58,11 +58,11 @@ export function SwapPanel() {
           if (!op) return
           if (op.status === 'done') {
             clearSolPoll()
-            setSolLoading(false)
+            endWorkerTask()
             setSolMessage('Swap fulfilled. Tokens added to encrypted balance.')
           } else if (op.status === 'error') {
             clearSolPoll()
-            setSolLoading(false)
+            endWorkerTask()
             setSolError(true)
             setSolMessage(`Worker error: ${op.error ?? 'unknown'}`)
           }
@@ -70,7 +70,7 @@ export function SwapPanel() {
       }, 2000)
     } catch (err) {
       clearSolPoll()
-      setSolLoading(false)
+      endWorkerTask()
       setSolError(true)
       setSolMessage(err instanceof Error ? err.message : String(err))
     }
@@ -78,7 +78,7 @@ export function SwapPanel() {
 
   async function handleTokenForSol(e: React.FormEvent) {
     e.preventDefault()
-    if (!walletKey) return
+    if (!walletKey || workerBusy) return
 
     const parsed = BigInt(Math.round(parseFloat(tokenAmount)))
     if (parsed <= 0n) {
@@ -87,7 +87,7 @@ export function SwapPanel() {
       return
     }
 
-    setTokenLoading(true)
+    beginWorkerTask('Processing cifherSOL → SOL redemption — FHE computation may take up to 30s')
     setTokenError(false)
     setTokenMessage('Registering swap intent…')
     setTokenTxSig(null)
@@ -95,13 +95,13 @@ export function SwapPanel() {
     try {
       const sig = await swapTokenForSolRequest(parsed)
       setTokenTxSig(sig)
-      setTokenMessage(`Request submitted. Worker will send ${parsed.toString()} SOL shortly.`)
+      setTokenMessage(`Request submitted. Worker will send SOL shortly.`)
       setTokenAmount('')
     } catch (err) {
       setTokenError(true)
       setTokenMessage(err instanceof Error ? err.message : String(err))
     } finally {
-      setTokenLoading(false)
+      endWorkerTask()
     }
   }
 
@@ -129,21 +129,22 @@ export function SwapPanel() {
               value={solAmount}
               onChange={(e) => setSolAmount(e.target.value)}
               required
-              disabled={solLoading}
+              disabled={workerBusy}
             />
           </label>
 
           <button
             type="submit"
             className="btn btn-primary"
-            disabled={!walletKey || solLoading || !solAmount}
+            disabled={!walletKey || workerBusy || !solAmount}
           >
-            {solLoading ? 'Swapping…' : 'Swap'}
+            {workerBusy ? <><span className="spinner" /> Working…</> : 'Swap'}
           </button>
         </form>
 
         {solMessage && (
-          <div className={`status-msg ${solError ? 'status-error' : 'status-fulfilled'}`}>
+          <div className={`status-msg ${solError ? 'status-error' : workerBusy ? 'status-pending' : 'status-fulfilled'}`}>
+            {workerBusy && !solError && <span className="spinner" />}
             {solMessage}
           </div>
         )}
@@ -176,21 +177,22 @@ export function SwapPanel() {
               value={tokenAmount}
               onChange={(e) => setTokenAmount(e.target.value)}
               required
-              disabled={tokenLoading}
+              disabled={workerBusy}
             />
           </label>
 
           <button
             type="submit"
             className="btn btn-secondary"
-            disabled={!walletKey || tokenLoading || !tokenAmount}
+            disabled={!walletKey || workerBusy || !tokenAmount}
           >
-            {tokenLoading ? 'Requesting…' : 'Redeem'}
+            {workerBusy ? <><span className="spinner" /> Working…</> : 'Redeem'}
           </button>
         </form>
 
         {tokenMessage && (
-          <div className={`status-msg ${tokenError ? 'status-error' : 'status-fulfilled'}`}>
+          <div className={`status-msg ${tokenError ? 'status-error' : workerBusy ? 'status-pending' : 'status-fulfilled'}`}>
+            {workerBusy && !tokenError && <span className="spinner" />}
             {tokenMessage}
           </div>
         )}

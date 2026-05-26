@@ -8,6 +8,7 @@ import '@solana/wallet-adapter-react-ui/styles.css'
 import { RPC_URL } from './utils/constants'
 import { useConfidentialToken } from './hooks/useConfidentialToken'
 import { useWorkerHealth } from './hooks/useWorkerHealth'
+import { useWorkerBusy, WorkerBusyProvider } from './hooks/useWorkerBusy'
 import { BalanceDisplay } from './components/BalanceDisplay'
 import { TransferPanel } from './components/TransferPanel'
 import { SwapPanel } from './components/SwapPanel'
@@ -17,13 +18,13 @@ function AppInner() {
   const { publicKey } = useWallet()
   const { initializeAccount, accountExists } = useConfidentialToken()
   const workerOnline = useWorkerHealth()
+  const { workerBusy, workerTask, beginWorkerTask, endWorkerTask } = useWorkerBusy()
 
-  const [initLoading, setInitLoading] = useState(false)
   const [initMessage, setInitMessage] = useState<string | null>(null)
   const [initError, setInitError] = useState(false)
 
   async function handleInitAccount() {
-    setInitLoading(true)
+    beginWorkerTask('Initializing on-chain account…')
     setInitError(false)
     setInitMessage('Creating on-chain confidential account…')
     try {
@@ -33,7 +34,7 @@ function AppInner() {
       setInitError(true)
       setInitMessage(err instanceof Error ? err.message : String(err))
     } finally {
-      setInitLoading(false)
+      endWorkerTask()
     }
   }
 
@@ -55,6 +56,12 @@ function AppInner() {
         {workerOnline === false && (
           <div className="worker-banner">
             Worker offline — mint, transfer, and swap are unavailable.
+          </div>
+        )}
+        {workerBusy && (
+          <div className="worker-busy-banner">
+            <span className="spinner" />
+            <span>{workerTask} — please wait, do not close or refresh this page.</span>
           </div>
         )}
         {!publicKey ? (
@@ -82,9 +89,9 @@ function AppInner() {
                   <button
                     className="btn btn-outline"
                     onClick={handleInitAccount}
-                    disabled={initLoading}
+                    disabled={workerBusy}
                   >
-                    {initLoading ? 'Initializing…' : 'Initialize Account'}
+                    {workerBusy ? 'Working…' : 'Initialize Account'}
                   </button>
                   {initMessage && (
                     <div
@@ -123,7 +130,9 @@ export default function App() {
     <ConnectionProvider endpoint={RPC_URL}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
-          <AppInner />
+          <WorkerBusyProvider>
+            <AppInner />
+          </WorkerBusyProvider>
         </WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>

@@ -1,21 +1,22 @@
 import { useState } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { useConfidentialToken } from '../hooks/useConfidentialToken'
+import { useWorkerBusy } from '../hooks/useWorkerBusy'
 
 export function TransferPanel() {
   const { publicKey } = useWallet()
   const { transfer, fheReady } = useConfidentialToken()
+  const { workerBusy, beginWorkerTask, endWorkerTask } = useWorkerBusy()
 
   const [recipient, setRecipient] = useState('')
   const [amount, setAmount] = useState('')
-  const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [isError, setIsError] = useState(false)
   const [txSig, setTxSig] = useState<string | null>(null)
 
   async function handleTransfer(e: React.FormEvent) {
     e.preventDefault()
-    if (!publicKey || !fheReady) return
+    if (!publicKey || !fheReady || workerBusy) return
 
     const parsedAmount = BigInt(Math.round(parseFloat(amount)))
     if (parsedAmount <= 0n) {
@@ -24,9 +25,9 @@ export function TransferPanel() {
       return
     }
 
-    setLoading(true)
+    beginWorkerTask('Computing homomorphic transfer — this may take up to 30s')
     setIsError(false)
-    setMessage('Homomorphic transfer in progress…')
+    setMessage('Submitting transfer…')
     setTxSig(null)
 
     try {
@@ -39,7 +40,7 @@ export function TransferPanel() {
       setIsError(true)
       setMessage(err instanceof Error ? err.message : String(err))
     } finally {
-      setLoading(false)
+      endWorkerTask()
     }
   }
 
@@ -64,7 +65,7 @@ export function TransferPanel() {
             value={recipient}
             onChange={(e) => setRecipient(e.target.value)}
             required
-            disabled={loading}
+            disabled={workerBusy}
           />
         </label>
 
@@ -78,16 +79,16 @@ export function TransferPanel() {
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             required
-            disabled={loading}
+            disabled={workerBusy}
           />
         </label>
 
         <button
           type="submit"
           className="btn btn-primary"
-          disabled={!publicKey || !fheReady || loading || !recipient || !amount}
+          disabled={!publicKey || !fheReady || workerBusy || !recipient || !amount}
         >
-          {loading ? 'Transferring…' : 'Transfer'}
+          {workerBusy ? <><span className="spinner" /> Working…</> : 'Transfer'}
         </button>
 
         {!fheReady && publicKey && (
@@ -96,7 +97,8 @@ export function TransferPanel() {
       </form>
 
       {message && (
-        <div className={`status-msg ${isError ? 'status-error' : 'status-fulfilled'}`}>
+        <div className={`status-msg ${isError ? 'status-error' : workerBusy ? 'status-pending' : 'status-fulfilled'}`}>
+          {workerBusy && <span className="spinner" />}
           {message}
         </div>
       )}
