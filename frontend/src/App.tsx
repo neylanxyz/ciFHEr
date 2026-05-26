@@ -15,7 +15,7 @@ import './App.css'
 
 function AppInner() {
   const { publicKey } = useWallet()
-  const { initializeAccount } = useConfidentialToken()
+  const { initializeAccount, accountExists } = useConfidentialToken()
   const workerOnline = useWorkerHealth()
 
   const [initLoading, setInitLoading] = useState(false)
@@ -71,29 +71,31 @@ function AppInner() {
           </div>
         ) : (
           <>
-            <div className="init-section">
-              <div className="card init-card">
-                <h2>First Time?</h2>
-                <p className="description">
-                  Create your on-chain confidential account before using any token
-                  features. You only need to do this once.
-                </p>
-                <button
-                  className="btn btn-outline"
-                  onClick={handleInitAccount}
-                  disabled={initLoading}
-                >
-                  {initLoading ? 'Initializing…' : 'Initialize Account'}
-                </button>
-                {initMessage && (
-                  <div
-                    className={`status-msg ${initError ? 'status-error' : 'status-fulfilled'}`}
+            {accountExists === false && (
+              <div className="init-section">
+                <div className="card init-card">
+                  <h2>First Time?</h2>
+                  <p className="description">
+                    Create your on-chain confidential account before using any token
+                    features. You only need to do this once.
+                  </p>
+                  <button
+                    className="btn btn-outline"
+                    onClick={handleInitAccount}
+                    disabled={initLoading}
                   >
-                    {initMessage}
-                  </div>
-                )}
+                    {initLoading ? 'Initializing…' : 'Initialize Account'}
+                  </button>
+                  {initMessage && (
+                    <div
+                      className={`status-msg ${initError ? 'status-error' : 'status-fulfilled'}`}
+                    >
+                      {initMessage}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="grid">
               <BalanceDisplay />

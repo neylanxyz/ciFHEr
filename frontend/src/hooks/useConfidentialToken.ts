@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { AnchorProvider } from '@coral-xyz/anchor'
 import { PublicKey, SystemProgram } from '@solana/web3.js'
@@ -20,6 +20,7 @@ export function useConfidentialToken() {
   const wallet = useWallet()
   const { fheReady, fheError } = useFhe()
   const { getToken } = useAuth()
+  const [accountExists, setAccountExists] = useState<boolean | null>(null)
 
   const getProvider = useCallback(() => {
     if (!wallet.publicKey || !wallet.signTransaction || !wallet.signAllTransactions) {
@@ -36,6 +37,23 @@ export function useConfidentialToken() {
     )
   }, [connection, wallet])
 
+  useEffect(() => {
+    if (!wallet.publicKey) { setAccountExists(null); return }
+    let cancelled = false
+    const provider = new AnchorProvider(
+      connection,
+      { publicKey: wallet.publicKey, signTransaction: wallet.signTransaction!, signAllTransactions: wallet.signAllTransactions! },
+      { commitment: 'confirmed' },
+    )
+    const program = getTokenProgram(provider)
+    const [confidentialAccountPda] = getConfidentialAccountPda(wallet.publicKey)
+    ;(program.account as any).confidentialAccount
+      .fetchNullable(confidentialAccountPda)
+      .then((a: unknown) => { if (!cancelled) setAccountExists(a !== null) })
+      .catch(() => { if (!cancelled) setAccountExists(false) })
+    return () => { cancelled = true }
+  }, [wallet.publicKey, connection, wallet.signTransaction, wallet.signAllTransactions])
+
   const initializeAccount = useCallback(async (): Promise<void> => {
     const provider = getProvider()
     const program = getTokenProgram(provider)
@@ -45,7 +63,7 @@ export function useConfidentialToken() {
     const existing = await (program.account as any).confidentialAccount.fetchNullable(
       confidentialAccountPda,
     )
-    if (existing) return
+    if (existing) { setAccountExists(true); return }
     await program.methods
       .initializeAccount()
       .accounts({
@@ -55,6 +73,7 @@ export function useConfidentialToken() {
         systemProgram: SystemProgram.programId,
       })
       .rpc()
+    setAccountExists(true)
   }, [getProvider])
 
   const mintRequest = useCallback(async (): Promise<string> => {
@@ -222,6 +241,7 @@ export function useConfidentialToken() {
   return {
     fheReady,
     fheError,
+    accountExists,
     initializeAccount,
     mintRequest,
     transfer,
