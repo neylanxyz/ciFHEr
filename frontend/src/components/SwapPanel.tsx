@@ -23,6 +23,7 @@ export function SwapPanel() {
 
   // Token → SOL
   const [tokenAmount, setTokenAmount] = useState('')
+  const [tokenSubmitting, setTokenSubmitting] = useState(false)
   const [tokenMessage, setTokenMessage] = useState<string | null>(null)
   const [tokenError, setTokenError] = useState(false)
   const [tokenTxSig, setTokenTxSig] = useState<string | null>(null)
@@ -78,7 +79,7 @@ export function SwapPanel() {
 
   async function handleTokenForSol(e: React.FormEvent) {
     e.preventDefault()
-    if (!walletKey || workerBusy) return
+    if (!walletKey || workerBusy || tokenSubmitting) return
 
     const parsed = BigInt(Math.round(parseFloat(tokenAmount)))
     if (parsed <= 0n) {
@@ -87,20 +88,24 @@ export function SwapPanel() {
       return
     }
 
-    beginWorkerTask('Processing cifherSOL → SOL redemption — FHE computation may take up to 30s')
+    // Local-only while wallet popup is open — don't block other panels
+    setTokenSubmitting(true)
     setTokenError(false)
-    setTokenMessage('Registering swap intent…')
+    setTokenMessage('Approve in wallet…')
     setTokenTxSig(null)
 
     try {
       const sig = await swapTokenForSolRequest(parsed)
+      // Wallet signed — now lock globally while worker processes
+      beginWorkerTask('cifherSOL → SOL — worker is computing your redemption (up to 30s)')
       setTokenTxSig(sig)
-      setTokenMessage(`Request submitted. Worker will send SOL shortly.`)
+      setTokenMessage('Request submitted. Worker will send SOL shortly.')
       setTokenAmount('')
     } catch (err) {
       setTokenError(true)
       setTokenMessage(err instanceof Error ? err.message : String(err))
     } finally {
+      setTokenSubmitting(false)
       endWorkerTask()
     }
   }
@@ -177,22 +182,24 @@ export function SwapPanel() {
               value={tokenAmount}
               onChange={(e) => setTokenAmount(e.target.value)}
               required
-              disabled={workerBusy}
+              disabled={workerBusy || tokenSubmitting}
             />
           </label>
 
           <button
             type="submit"
             className="btn btn-secondary"
-            disabled={!walletKey || workerBusy || !tokenAmount}
+            disabled={!walletKey || workerBusy || tokenSubmitting || !tokenAmount}
           >
-            {workerBusy ? <><span className="spinner" /> Working…</> : 'Redeem'}
+            {workerBusy ? <><span className="spinner" /> Working…</>
+              : tokenSubmitting ? <><span className="spinner" /> Approve in wallet…</>
+              : 'Redeem'}
           </button>
         </form>
 
         {tokenMessage && (
-          <div className={`status-msg ${tokenError ? 'status-error' : workerBusy ? 'status-pending' : 'status-fulfilled'}`}>
-            {workerBusy && !tokenError && <span className="spinner" />}
+          <div className={`status-msg ${tokenError ? 'status-error' : (workerBusy || tokenSubmitting) ? 'status-pending' : 'status-fulfilled'}`}>
+            {(workerBusy || tokenSubmitting) && !tokenError && <span className="spinner" />}
             {tokenMessage}
           </div>
         )}
