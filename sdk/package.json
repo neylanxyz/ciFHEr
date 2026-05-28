@@ -1,0 +1,49 @@
+{
+  "name": "@cifher/sdk",
+  "version": "0.1.0",
+  "description": "SDK for integrating ciFHEr confidential tokens on Solana — encrypted balances and transfers using real Fully Homomorphic Encryption.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc && cp -r src/idl dist/idl",
+    "dev": "tsc --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "solana",
+    "fhe",
+    "fully-homomorphic-encryption",
+    "privacy",
+    "confidential-tokens",
+    "blockchain",
+    "anchor",
+    "web3"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "@coral-xyz/anchor": ">=0.30.0",
+    "@solana/web3.js": ">=1.90.0"
+  },
+  "dependencies": {
+    "bn.js": "^5.2.1"
+  },
+  "devDependencies": {
+    "@coral-xyz/anchor": "^0.32.1",
+    "@solana/web3.js": "^1.95.8",
+    "@types/bn.js": "^5.1.6",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/neylanxyz/ciFHEr"
+  },
+  "homepage": "https://cifher.vercel.app"
+}
